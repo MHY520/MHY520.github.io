@@ -1,5 +1,7 @@
 原文连接：https://blog.csdn.net/zougen/article/details/85046958
 
+【连接池】Tomcat 连接池中 maxActive，maxWait，maxAge，testOnBorrow，testWhileIdle等选项的作用
+
 前言
 连接池本质作用是为客户端提供连接复用，提升连接效率，降低系统开销。Tomcat的连接池提供了maxActive，maxWait，maxIdle，minIdle，initialSize等参数，配置连接池的大小，用户根据自身业务需求配置这几个参数。同时，因为对端数据库服务器状态不受tomcat控制，所以tomcat需要有检查连接可用性的机制，通过testOnBorrow，testWhileIdle等选项用户可以告诉tomcat是否检查连接可用性以及如何检查。
 
