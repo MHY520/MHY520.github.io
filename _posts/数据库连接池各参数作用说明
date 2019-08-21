@@ -1,0 +1,28 @@
+原文连接：https://blog.csdn.net/zougen/article/details/85046958
+
+前言
+连接池本质作用是为客户端提供连接复用，提升连接效率，降低系统开销。Tomcat的连接池提供了maxActive，maxWait，maxIdle，minIdle，initialSize等参数，配置连接池的大小，用户根据自身业务需求配置这几个参数。同时，因为对端数据库服务器状态不受tomcat控制，所以tomcat需要有检查连接可用性的机制，通过testOnBorrow，testWhileIdle等选项用户可以告诉tomcat是否检查连接可用性以及如何检查。
+
+1，连接池大小及性能选项
+maxActive：最主要参数，配置连接池同时能维持的最大连接数，如果客户端理论上需要100个连接，则这个值设为100。
+maxIdle：如果客户端一段时间内不需要使用连接，如果一直把所有连接池中的所有连接都维持在活动状态是很浪费资源的，maxIdle这个选项告诉tomcat，如果客户端没有需求，那么最多维持maxIdle个空闲连接。
+minIdle：和maxIdle类似，maxIdle告诉tomcat最多维持多少个空闲连接，minIdle告诉tomcat即使客户端没有需求，也要至少维持多少个空闲连接，以应对客户端的突发需求。
+initialSize：连接池启动时要初始化多少个连接，即使客户端这是没有需求，也会初始化空闲连接。
+maxWait：连接池出借连接的最长期限，单位是毫秒，比如设为10000ms，客户端从连接池获取（借出）一个连接后，10000毫秒没有归还（return），则连接池会抛出异常。
+maxAge：连接池中一个连接的寿命，连接池初始化一个连接后，会记下初始化的时间，以后每次出借，或有客户端归还这个连接时，连接池会检查 当前时间 - 初始化时间 > maxAge，如果超过maxAge，连接池会删除这个连接。
+
+2，连接检查选项
+mysql5以后，如果连接长时间不活动 (34,247,052 ms≈ 9.5 小时)，mysql数据库会断开连接，这会导致异常：MySQLNonTransientConnectionException: No operations allowed after connection closed，以下选项将会告诉连接池，主动检查连接可用性，避免这个异常发生。
+
+validationQuery：检查连接可用性的语句，一般来说mysql设置成SELECT 1, oracle设置成select 1 from dual, sql server设置成SELECT 1 ，在检查连接可用性时，连接池会执行这些语句，如果返回结果不为空，则说明连接可用。
+validationQueryTimeout：执行连接检查语句时的超时时间。
+
+上面两个选项告诉连接池如何检查连接有效性，下面几个选项告诉连接池在何时检查连接有效性
+
+testOnConnect： 在连接初始化时执行连接可用性检查
+testOnBorrow：在借出连接时检查连接可用性
+testOnReturn：在客户端归还连接时检查连接可用性
+testWhileIdle：在检查闲置连接时同时检查连接可用性
+
+3，一个典型的连接池设置
+ ———————————————— 
